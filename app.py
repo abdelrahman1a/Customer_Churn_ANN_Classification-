@@ -6,8 +6,28 @@ import pickle
 from sklearn.preprocessing import StandardScaler , LabelEncoder , OneHotEncoder
 
 
-## Load the model
-model = tf.keras.models.load_model('model.keras')
+@st.cache_resource
+def load_keras_model(model_path):
+    """Helper function to load Keras model with multiple fallback approaches"""
+    try:
+        # First try: Standard loading
+        model = tf.keras.models.load_model(model_path)
+        st.success("Model loaded successfully using standard method")
+        return model
+    except Exception as e:
+        st.warning(f"Standard loading failed: {str(e)}")
+        try:
+            # Second try: Loading with compile=False
+            model = tf.keras.models.load_model(model_path, compile=False)
+            st.success("Model loaded successfully with compile=False")
+            return model
+        except Exception as e:
+            st.error(f"All loading attempts failed: {str(e)}")
+            return None
+
+# Load the model
+model = load_keras_model('model.keras')
+
 
 with open('scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
